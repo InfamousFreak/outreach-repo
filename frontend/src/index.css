@@ -10,10 +10,33 @@ body {
 
 /* Flash message animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .flash-message {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Minimal invert-based dark mode: toggles by adding `dark-mode` to <html> */
+html {
+  transition: filter 200ms ease, background-color 200ms ease;
+}
+
+html.dark-mode {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #111827;
+}
+
+/* If you want to opt-out of inversion for specific elements (images, icons),
+   add the `no-invert` class to them. This is optional and not used by default. */
+.no-invert {
+  filter: invert(1) hue-rotate(180deg);
 }

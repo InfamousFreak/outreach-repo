@@ -19,7 +19,19 @@ export default function Navbar() {
   const [selectedEmail, setSelectedEmail] = useState(null)
   const searchInputRef = useRef(null)
   const dropdownRef = useRef(null)
+  const [isDark, setIsDark] = useState(() => {
+    try { return localStorage.getItem('theme') === 'dark' }
+    catch { return false }
+  })
   const navigate = useNavigate()
+
+  useEffect(() => {
+    try {
+      if (isDark) document.documentElement.classList.add('dark-mode')
+      else document.documentElement.classList.remove('dark-mode')
+      localStorage.setItem('theme', isDark ? 'dark' : 'light')
+    } catch (e) { /* ignore */ }
+  }, [isDark])
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -39,7 +51,7 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target) &&
-          searchInputRef.current && !searchInputRef.current.contains(e.target)) {
+        searchInputRef.current && !searchInputRef.current.contains(e.target)) {
         setDropdownVisible(false)
       }
     }
@@ -52,16 +64,16 @@ export default function Navbar() {
       setResults([])
       return
     }
-    
+
     let active = true
     const timeoutId = setTimeout(() => {
       api.get(`/search?q=${encodeURIComponent(query)}&limit=6`)
         .then(res => {
-            if(active) setResults(res.data.results)
+          if (active) setResults(res.data.results)
         })
         .catch(console.error)
     }, 300)
-    
+
     return () => { active = false; clearTimeout(timeoutId); }
   }, [query])
 
@@ -86,7 +98,7 @@ export default function Navbar() {
             <span className="text-lg font-bold text-gray-900 tracking-tight shrink-0 mr-4">
               📧 Outreach
             </span>
-            
+
             {/* Global Search Bar */}
             <div className="flex-1 max-w-sm mr-auto relative hidden md:block">
               <form onSubmit={handleSearchSubmit}>
@@ -113,7 +125,7 @@ export default function Navbar() {
               {dropdownVisible && results.length > 0 && (
                 <div ref={dropdownRef} className="absolute top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
                   {results.slice(0, 6).map(r => (
-                    <div 
+                    <div
                       key={r.id}
                       onClick={() => openContactHistory(r.email)}
                       className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
@@ -126,7 +138,7 @@ export default function Navbar() {
                           )}
                         </div>
                         <div className="shrink-0">
-                           <StatusBadge status={r.reply_status || r.send_status} />
+                          <StatusBadge status={r.reply_status || r.send_status} />
                         </div>
                       </div>
                       <div className="text-xs text-gray-400 mt-1 line-clamp-1">
@@ -134,7 +146,7 @@ export default function Navbar() {
                       </div>
                     </div>
                   ))}
-                  <div 
+                  <div
                     onClick={() => { setDropdownVisible(false); navigate(`/search?q=${encodeURIComponent(query)}`); }}
                     className="px-4 py-2 text-center text-sm text-indigo-600 hover:bg-indigo-50 hover:text-indigo-800 cursor-pointer font-medium transition-colors"
                   >
@@ -151,25 +163,31 @@ export default function Navbar() {
                   to={item.to}
                   end={item.to === '/'}
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                      isActive
-                        ? 'bg-indigo-50 text-indigo-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    `px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${isActive
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`
                   }
                 >
                   {item.label}
                 </NavLink>
               ))}
+              <button
+                onClick={() => setIsDark(!isDark)}
+                aria-label="Toggle dark mode"
+                className="ml-2 p-2 rounded-md text-sm hover:bg-gray-100 transition-colors"
+              >
+                {isDark ? '🌙' : '☀️'}
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
-      <ContactHistoryPanel 
-        email={selectedEmail} 
-        isOpen={!!selectedEmail} 
-        onClose={() => setSelectedEmail(null)} 
+      <ContactHistoryPanel
+        email={selectedEmail}
+        isOpen={!!selectedEmail}
+        onClose={() => setSelectedEmail(null)}
       />
     </>
   )

@@ -12,7 +12,7 @@ DEFAULT_CONFIG = {
     "gmail_address": "",
     "gmail_app_password": "",
     "groq_api_key": "",
-    "send_delay_seconds": 60,
+    "send_delay_seconds": 35,
     "profile": {
         "name": "",
         "college": "",

@@ -6,7 +6,7 @@ export default function Settings() {
     gmail_address: '',
     gmail_app_password: '',
     groq_api_key: '',
-    send_delay_seconds: 60,
+    send_delay_seconds: 35,
   })
   const [hasPassword, setHasPassword] = useState(false)
   const [hasKey, setHasKey] = useState(false)
@@ -158,14 +158,14 @@ export default function Settings() {
             id="send-delay"
             type="range"
             name="send_delay_seconds"
-            min="45"
+            min="35"
             max="90"
             value={form.send_delay_seconds}
             onChange={handleChange}
             className="w-full accent-indigo-600"
           />
           <div className="flex justify-between text-xs text-gray-400">
-            <span>45s</span>
+            <span>35s</span>
             <span>90s</span>
           </div>
         </div>

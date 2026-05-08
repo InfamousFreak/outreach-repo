@@ -10,21 +10,29 @@ import time
 from groq import Groq
 from utils import resolve_company_name
 
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 SYSTEM_PROMPT = """You are helping a college student write personalised cold outreach emails for internship/job opportunities.
-These emails will be sent directly from the student's Gmail. They must feel like real, human-written emails — not templates, not cover letters, not LinkedIn messages.
+These emails will be sent directly from the student's Gmail. They must feel like real, human-written emails, not templates, not cover letters, not LinkedIn messages. 
+These must read like emails written by a sharp, confident person, not a template, not a cover letter.'
+
+OPENER VARIETY (rotate through these styles, never repeat the same style in a batch):
+- Direct intro: "I'm Smarak, third-year ME student at NIT Durgapur, wanted to reach out about..."
+- Observation-first: "Came across [specific product/thing] at [Company], [one genuine sentence about it]."
+- Straight ask: "I'll keep this short — I'm looking for a summer internship and [Company] is at the top of my list because..."
+- Reverse hook: "I've been building [X] and kept running into the same problem your team is solving."
 
 MANDATORY EMAIL STRUCTURE (follow this every time):
 1. Greeting line: Start with "Hi [Name]," if name is known, or "Hi there," if unknown. Never "Dear Sir/Madam". Never skip the greeting.
 2. Opening sentence: A natural, varied opener that isn't "I've been following your work". It could be:
-   - A direct, confident intro ("I'm Vinayak, a third-year ChemE student at NIT Durgapur, and I wanted to reach out about...")
+   - A direct, confident intro ("I'm Smarak, a third-year ME student at NIT Durgapur, and I wanted to reach out about...")
    - A brief, genuine observation about the company (only if it feels specific and natural — not forced flattery)
-   - Getting straight to the point ("I came across [Company] while researching ML startups and thought I'd reach out directly.")
+   - Getting straight to the point ("I came across [Company] while researching AI/ML startups and thought I'd reach out directly.")
    Vary this opener every single time. Never repeat the same structure across emails.
 3. Middle (2–3 sentences): Briefly state what you're looking for, mention ONE specific thing from your background (a project or experience, one sentence max), and connect it to why you're reaching out to them specifically.
-4. Availability + ask (1–2 sentences): Mention availability and end with a soft, specific ask. Vary the closing line — do NOT use the same sentence across emails.
-5. Sign-off: "Best," followed by the student's first name on a new line.
+4. Availability + ask (1–2 sentences): Mention availability May-July 2026. End with a soft ask for a reply or email conversation — NOT a call. Use varied phrasing like "would love to hear your thoughts over email", "happy to share more over a quick email exchange", "even a short reply would mean a lot", "if it's easier, we could go back and forth over email."
+5. GitHub line: Always include this exact line as the final line before sign-off: "My work is at https://github.com/InfamousFreak — happy to share my resume too if helpful."
+6. Sign-off: "Yours Sincerely," followed by the student's first name on a new line.
 
 BANNED PHRASES (never use any of these):
 - "I've been following [X]'s work"
@@ -32,11 +40,16 @@ BANNED PHRASES (never use any of these):
 - "I would be honored"
 - "I am a passionate individual"
 - "I believe my skills could be a great fit"
-- "Would love to hear if there's any opportunity to contribute" (you may vary the sentiment but not reuse this exact line)
-- "synergy", "leverage", "cutting-edge", "innovative solutions", "bringing to the table"
+- "synergy", "leverage", "cutting-edge", "innovative solutions"
 - "I hope this email finds you well"
 - "Dear Sir/Madam"
-- Any phrase that sounds like it was copied from a cover letter template
+- "bringing to the table"
+- "Would love to jump on a call"
+- "schedule a call"
+- "quick call"
+- "15-minute call"
+- Any phrase that reads like a cover letter
+- Any suggestion of a phone or video call
 
 TONE:
 - Semi-formal: professional but conversational — like a confident student emailing a founder, not a formal job application
@@ -44,6 +57,8 @@ TONE:
 - Warm but not sycophantic — genuine, not flattering
 
 LENGTH: 200-240 words for the body (including greeting and sign-off). Shorter is better if the message is complete.
+
+SPACING: One blank line between paragraphs.
 
 OUTPUT FORMAT: Return ONLY a valid JSON object: {"subject": "...", "body": "..."}
 The body must include the greeting line and sign-off. No markdown, no extra text."""
@@ -83,11 +98,12 @@ def build_resume_highlights(resume_parsed: dict) -> str:
 
     if projects:
         lines.append("""PROJECTS (listed in random order — evaluate ALL of them before choosing):
-Selection rule: Choose the project whose tech stack most closely matches this recipient's company domain.
-- If company is in AI/ML/healthcare → prefer Coeur AI
-- If company is in SaaS/ad-tech/marketing/e-commerce → prefer AdGenAI
-- If company is in research/education/NLP/data → prefer The Rigveda Project
-- If unclear → pick whichever has the most tech overlap with the job description
+Selection rule: Choose the entry whose tech stack or domain most closely matches this recipient's company.
+- If company is in AI/ML/Deep Tech → prefer the 'Research Monitor (Go/Ollama)'.
+- If company is in Healthcare/Real-time data → prefer the 'ICU Monitoring System' project.
+- If company is in SaaS/Logistics/Mobile → prefer the 'Application Development Intern (Geospatial)' role.
+- If company is building AI Agents → prefer the 'Agentic Research Intelligence Engine' project.
+- If unclear → pick whichever has the most tech overlap with the job description.
 Do NOT default to the first project listed. Actively reason about fit.""")
         for p in projects[:4]:  # max 4 projects passed to AI
             title = p.get("title", "")
@@ -127,13 +143,13 @@ def generate_email(profile, recipient, campaign_goal, additional_context, api_ke
     user_prompt = f"""Generate a cold outreach email from the following student to the recipient at {company}.
 
 STUDENT PROFILE:
-- Name: {profile.get('name', '')}
-- College: {profile.get('college', '')}, {profile.get('branch', '')}, {profile.get('year', '')}
-- CGPA: {profile.get('cgpa', 'Not specified')}
+- Name: {profile.get('name', 'Smarak Choudhury')}
+- College: {profile.get('college', 'NIT Durgapur')}, {profile.get('branch', 'Mechanical Engineering')}, {profile.get('year', 'Third Year    ')}
+- CGPA: {profile.get('cgpa', '8.5')}
 - Skills: {profile.get('skills', '')}
 - Bio: {profile.get('bio', '')}
-- GitHub: {profile.get('github', 'Not provided')}
-- LinkedIn: {profile.get('linkedin', 'Not provided')}
+- GitHub: {profile.get('github', 'https://github.com/InfamousFreak')}
+- LinkedIn: {profile.get('linkedin', 'https://www.linkedin.com/in/smarak-choudhury-423b39280')}
 
 RESUME HIGHLIGHTS (use to personalise the email — pick 1–2 specific things to naturally mention):
 {resume_block}
@@ -391,10 +407,10 @@ def _call_groq(system_prompt, user_prompt, api_key, retries=4, model="meta-llama
         except Exception as e:
             err_str = str(e).upper()
             FALLBACK_MODELS = [
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-    "llama-3.3-70b-versatile",
-    "qwen/qwen3-32b",
-    "llama-3.1-8b-instant",
+                "llama-3.1-8b-instant",
+                "meta-llama/llama-4-scout-17b-16e-instruct",
+                "llama-3.3-70b-versatile",
+                "qwen/qwen3-32b",
 ]
 
         if "TOKENS PER DAY" in err_str or "REQUESTS PER DAY" in err_str or "TOKENS PER MINUTE" in err_str:

@@ -137,7 +137,7 @@ def get_settings():
         "gmail_address": config.get("gmail_address", ""),
         "has_gmail_password": bool(config.get("gmail_app_password", "")),
         "has_groq_key": bool(config.get("groq_api_key", "")),
-        "send_delay_seconds": config.get("send_delay_seconds", 60),
+        "send_delay_seconds": config.get("send_delay_seconds", 35),
         "is_complete": is_settings_complete(config),
     })
 
@@ -495,7 +495,7 @@ def send_campaign(campaign_id):
 
 def _send_campaign_thread(campaign_id, recipients, config, resume_path):
     """Background thread that sends emails one by one with delay."""
-    delay = config.get("send_delay_seconds", 60)
+    delay = config.get("send_delay_seconds", 35)
     progress = send_progress[campaign_id]
 
     for i, r in enumerate(recipients):
@@ -725,7 +725,7 @@ def send_followups(campaign_id):
 
 def _send_followup_thread(campaign_id, followups, config, resume_path, progress_key):
     """Background thread that sends follow-up emails."""
-    delay = config.get("send_delay_seconds", 60)
+    delay = config.get("send_delay_seconds", 35)
     progress = send_progress[progress_key]
 
     for i, f in enumerate(followups):
